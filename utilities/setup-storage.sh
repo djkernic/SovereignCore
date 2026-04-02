@@ -997,6 +997,7 @@ else
         ceph_exec radosgw-admin quota set \
             --quota-scope=user \
             --uid="${RGW_USER_NAME}" \
+            --rgw-zone="${RGW_ZONE}" \
             --max-size="${RGW_QUOTA_BYTES}" 2>&1 || {
             print_error "Failed to set quota for RGW user ${RGW_USER_NAME}"
             exit 1
@@ -1006,7 +1007,8 @@ else
         print_info "Enabling RGW quota enforcement"
         ceph_exec radosgw-admin quota enable \
             --quota-scope=user \
-            --uid="${RGW_USER_NAME}" 2>&1 || {
+            --uid="${RGW_USER_NAME}" \
+            --rgw-zone="${RGW_ZONE}" 2>&1 || {
             print_error "Failed to enable quota for RGW user ${RGW_USER_NAME}"
             exit 1
         }
