@@ -17,11 +17,9 @@ The script:
 
 - **yq**: YAML processor
   - Installation: https://github.com/mikefarah/yq
-  - macOS: `brew install yq`
   - Linux: Download from releases page
 
 - **podman**: Container tool for image verification
-  - macOS: `brew install podman`
   - RHEL/Fedora: `sudo dnf install podman`
 
 - **oc**: OpenShift CLI (required only with `--apply` flag)
@@ -29,12 +27,10 @@ The script:
 
 ### Authentication
 
-Before running the script, authenticate to your container registry:
+Before running the script, authenticate to your Quay registry:
 
 ```bash
-podman login quay.io
-# or
-podman login your-registry.example.com
+podman login quay-registry.example.com
 ```
 
 ## Configuration File
@@ -50,13 +46,13 @@ catalog_version: "1.0.0"
 # PostgreSQL images - list of versions and their image paths
 postgres_images:
   - major: 16
-    image: "quay.io/myorg/postgres:16-v1.0.0"
+    image: "quay-registry.example.com/myorg/myrepo/postgres:16-v1.0.0"
   
   - major: 17
-    image: "quay.io/myorg/postgres:17-v1.0.0"
+    image: "quay-registry.example.com/myorg/myrepo/postgres:17-v1.0.0"
   
   - major: 18
-    image: "quay.io/myorg/postgres:18-v1.0.0"
+    image: "quay-registry.example.com/myorg/myrepo/postgres:18-v1.0.0"
 ```
 
 ### Configuration Fields
@@ -83,19 +79,19 @@ catalog_version: "2.0.0"
 
 postgres_images:
   - major: 15
-    image: "quay.io/myorg/postgres:15-v2.0.0"
+    image: "quay-registry.example.com/myorg/myrepo/postgres:15-v2.0.0"
   
   - major: 16
-    image: "quay.io/myorg/postgres:16-v2.0.0"
+    image: "quay-registry.example.com/myorg/myrepo/postgres:16-v2.0.0"
   
   - major: 17
-    image: "quay.io/myorg/postgres:17-v2.0.0"
+    image: "quay-registry.example.com/myorg/myrepo/postgres:17-v2.0.0"
   
   - major: 18
-    image: "quay.io/myorg/postgres:18-v2.0.0"
+    image: "quay-registry.example.com/myorg/myrepo/postgres:18-v2.0.0"
   
   - major: 19
-    image: "quay.io/myorg/postgres:19-v2.0.0"
+    image: "quay-registry.example.com/myorg/myrepo/postgres:19-v2.0.0"
 ```
 
 ## Usage
@@ -143,7 +139,7 @@ cp config.example.yaml my-config.yaml
 ### 2. Authenticate to Registry
 
 ```bash
-podman login quay.io
+podman login quay-registry.example.com
 # Enter your credentials
 ```
 
@@ -227,11 +223,11 @@ spec:
               name: postgresql-image-catalog-1.0.0
             spec:
               images:
-              - image: quay.io/myorg/postgres:16-v1.0.0
+              - image: quay-registry.example.com/myorg/myrepo/postgres:16-v1.0.0
                 major: 16
-              - image: quay.io/myorg/postgres:17-v1.0.0
+              - image: quay-registry.example.com/myorg/myrepo/postgres:17-v1.0.0
                 major: 17
-              - image: quay.io/myorg/postgres:18-v1.0.0
+              - image: quay-registry.example.com/myorg/myrepo/postgres:18-v1.0.0
                 major: 18
 ---
 apiVersion: policy.open-cluster-management.io/v1
@@ -254,10 +250,10 @@ subjects:
 After applying the Policy, verify the deployment:
 
 ```bash
-# Check Policy status
+# Check Policy existence
 oc get policy -n postgres-service-broker
 
-# Check ClusterImageCatalog
+# Check ClusterImageCatalog in a cluster created by Cluster Service
 oc get clusterimagecatalog
 
 # View detailed status
@@ -273,12 +269,12 @@ oc describe clusterimagecatalog postgresql-image-catalog-1.0.0
 **Solutions**:
 1. Verify you're authenticated to the registry:
    ```bash
-   podman login quay.io
+   podman login quay-registry.example.com
    ```
 
 2. Check the image path is correct:
    ```bash
-   podman manifest inspect quay.io/myorg/postgres:16-v1.0.0
+   podman manifest inspect quay-registry.example.com/myorg/myrepo/postgres:16-v1.0.0
    ```
 
 3. Verify the image exists in the registry (check via web UI or API)
@@ -306,7 +302,7 @@ chmod +x /usr/local/bin/yq
 catalog_version: "1.0.0"
 postgres_images:
   - major: 16
-    image: "quay.io/myorg/postgres:16-v1.0.0"
+    image: "quay-registry.example.com/myorg/myrepo/postgres:16-v1.0.0"
 ```
 
 ### Apply Fails
@@ -339,13 +335,13 @@ cat > config.yaml <<EOF
 catalog_version: "1.0.0"
 postgres_images:
   - major: 16
-    image: "quay.io/myorg/postgres:16-v1.0.0"
+    image: "quay-registry.example.com/myorg/myrepo/postgres:16-v1.0.0"
   - major: 17
-    image: "quay.io/myorg/postgres:17-v1.0.0"
+    image: "quay-registry.example.com/myorg/myrepo/postgres:17-v1.0.0"
 EOF
 
 # Authenticate
-podman login quay.io
+podman login quay-registry.example.com
 
 # Generate and apply
 ./setup-postgres-catalog.sh -c config.yaml --apply
@@ -359,15 +355,15 @@ cat > config.yaml <<EOF
 catalog_version: "2.0.0"
 postgres_images:
   - major: 14
-    image: "quay.io/myorg/postgres:14-v2.0.0"
+    image: "quay-registry.example.com/myorg/myrepo/postgres:14-v2.0.0"
   - major: 15
-    image: "quay.io/myorg/postgres:15-v2.0.0"
+    image: "quay-registry.example.com/myorg/myrepo/postgres:15-v2.0.0"
   - major: 16
-    image: "quay.io/myorg/postgres:16-v2.0.0"
+    image: "quay-registry.example.com/myorg/myrepo/postgres:16-v2.0.0"
   - major: 17
-    image: "quay.io/myorg/postgres:17-v2.0.0"
+    image: "quay-registry.example.com/myorg/myrepo/postgres:17-v2.0.0"
   - major: 18
-    image: "quay.io/myorg/postgres:18-v2.0.0"
+    image: "quay-registry.example.com/myorg/myrepo/postgres:18-v2.0.0"
 EOF
 
 # Validate first
@@ -416,7 +412,7 @@ This script is designed to run in a Landing Zone environment:
 # CI/CD pipeline script
 
 # Authenticate to registry
-echo "$QUAY_PASSWORD" | podman login quay.io -u "$QUAY_USERNAME" --password-stdin
+echo "$QUAY_PASSWORD" | podman login quay-registry.example.com -u "$QUAY_USERNAME" --password-stdin
 
 # Generate and apply
 cd scripts/postgres-catalog-setup
