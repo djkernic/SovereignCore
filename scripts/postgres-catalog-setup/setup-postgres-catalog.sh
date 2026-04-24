@@ -62,8 +62,8 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# Get embedded template content
-get_template_content() {
+# Get Policy template content
+get_policy_template() {
     cat <<'EOF'
 apiVersion: policy.open-cluster-management.io/v1
 kind: Policy
@@ -93,10 +93,14 @@ spec:
               images:
               - image: <image_path_in_quay>
                 major: <major_version>
-          recreateOption: Always
         remediationAction: enforce
         severity: high
----
+EOF
+}
+
+# Get PlacementBinding template content
+get_placement_binding_template() {
+    cat <<'EOF'
 apiVersion: policy.open-cluster-management.io/v1
 kind: PlacementBinding
 metadata:
@@ -265,23 +269,22 @@ mkdir -p "$OUTPUT_DIR"
 
 log_info "Generating YAML file: $OUTPUT_FILE"
 
-# Read template from embedded content
-TEMPLATE_CONTENT=$(get_template_content)
+# Process Policy template
+log_info "Processing Policy template..."
+POLICY_TEMPLATE=$(get_policy_template)
+POLICY_CONTENT="${POLICY_TEMPLATE//<version>/$CATALOG_VERSION}"
 
-# Replace <version> placeholders
-YAML_CONTENT="${TEMPLATE_CONTENT//<version>/$CATALOG_VERSION}"
+# Write Policy content to a temporary file
+TEMP_POLICY_FILE=$(mktemp)
+echo "$POLICY_CONTENT" > "$TEMP_POLICY_FILE"
 
-# Write the template content with version replaced to a temporary file
-TEMP_FILE=$(mktemp)
-echo "$YAML_CONTENT" > "$TEMP_FILE"
-
-# Define the path to the images array in the YAML structure
+# Define the path to the images array in the Policy YAML structure
 IMAGES_PATH='.spec.policy-templates[0].objectDefinition.spec.object-templates[0].objectDefinition.spec.images'
 
 # Clear the images array first
-if ! yq eval "${IMAGES_PATH} = []" -i "$TEMP_FILE"; then
+if ! yq eval "${IMAGES_PATH} = []" -i "$TEMP_POLICY_FILE"; then
     log_error "Failed to initialize images array using yq"
-    rm -f "$TEMP_FILE"
+    rm -f "$TEMP_POLICY_FILE"
     exit 1
 fi
 
@@ -290,19 +293,38 @@ for i in $(seq 0 $((IMAGES_COUNT - 1))); do
     MAJOR=$(yq eval ".postgres_images[$i].major" "$CONFIG_FILE")
     IMAGE=$(yq eval ".postgres_images[$i].image" "$CONFIG_FILE")
     
-    if ! yq eval "${IMAGES_PATH} += [{\"image\": \"$IMAGE\", \"major\": $MAJOR}]" -i "$TEMP_FILE"; then
+    if ! yq eval "${IMAGES_PATH} += [{\"image\": \"$IMAGE\", \"major\": $MAJOR}]" -i "$TEMP_POLICY_FILE"; then
         log_error "Failed to add image entry using yq: $IMAGE (major: $MAJOR)"
-        rm -f "$TEMP_FILE"
+        rm -f "$TEMP_POLICY_FILE"
         exit 1
     fi
 done
 
-# Move the temporary file to the output file
-if ! mv "$TEMP_FILE" "$OUTPUT_FILE"; then
-    log_error "Failed to create output file: $OUTPUT_FILE"
-    rm -f "$TEMP_FILE"
+log_info "✓ Policy processed successfully"
+
+# Process PlacementBinding template (simple string replacement only)
+log_info "Processing PlacementBinding template..."
+PLACEMENT_TEMPLATE=$(get_placement_binding_template)
+PLACEMENT_CONTENT="${PLACEMENT_TEMPLATE//<version>/$CATALOG_VERSION}"
+
+log_info "✓ PlacementBinding processed successfully"
+
+# Combine Policy and PlacementBinding into the output file
+log_info "Combining resources into output file..."
+if ! cat "$TEMP_POLICY_FILE" > "$OUTPUT_FILE"; then
+    log_error "Failed to write Policy to output file: $OUTPUT_FILE"
+    rm -f "$TEMP_POLICY_FILE"
     exit 1
 fi
+
+# Add YAML document separator
+echo "---" >> "$OUTPUT_FILE"
+
+# Append PlacementBinding
+echo "$PLACEMENT_CONTENT" >> "$OUTPUT_FILE"
+
+# Clean up temporary file
+rm -f "$TEMP_POLICY_FILE"
 
 log_info "✓ YAML file generated successfully"
 
