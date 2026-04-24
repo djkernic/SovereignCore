@@ -11,7 +11,6 @@ CONFIG_FILE=""
 APPLY=false
 DRY_RUN=false
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TEMPLATE_FILE="${SCRIPT_DIR}/templates/install-postgres-image-catalog-template.yaml"
 OUTPUT_DIR="${SCRIPT_DIR}/generated"
 
 # Colors for output
@@ -63,6 +62,61 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
+# Get embedded template content
+get_template_content() {
+    cat <<'EOF'
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: install-postgres-image-catalog-<version>
+  namespace: postgres-service-broker
+spec:
+  disabled: false
+  policy-templates:
+  - objectDefinition:
+      apiVersion: policy.open-cluster-management.io/v1
+      kind: ConfigurationPolicy
+      metadata:
+        name: create-postgres-image-catalog-<version>
+      spec:
+        object-templates:
+        - complianceType: musthave
+          recreateOption: Always
+          objectDefinition:
+            apiVersion: postgresql.k8s.enterprisedb.io/v1
+            kind: ClusterImageCatalog
+            metadata:
+              labels:
+                app.kubernetes.io/managed-by: postgres-service-broker
+              name: postgresql-image-catalog-<version>
+            spec:
+              images:
+              - image: <image_path_in_quay>
+                major: 16
+              - image: <image_path_in_quay>
+                major: 17
+              - image: <image_path_in_quay>
+                major: 18
+          recreateOption: Always
+        remediationAction: enforce
+        severity: high
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: binding-install-postgres-image-catalog-<version>
+  namespace: postgres-service-broker
+placementRef:
+  apiGroup: cluster.open-cluster-management.io
+  kind: Placement
+  name: placement-install-postgres-operator-olm
+subjects:
+- apiGroup: policy.open-cluster-management.io
+  kind: Policy
+  name: install-postgres-image-catalog-<version>
+EOF
+}
+
 # Parse arguments
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -108,11 +162,6 @@ fi
 
 if [ ! -f "$CONFIG_FILE" ]; then
     log_error "Configuration file not found: $CONFIG_FILE"
-    exit 1
-fi
-
-if [ ! -f "$TEMPLATE_FILE" ]; then
-    log_error "Template file not found: $TEMPLATE_FILE"
     exit 1
 fi
 
@@ -220,8 +269,8 @@ mkdir -p "$OUTPUT_DIR"
 
 log_info "Generating YAML file: $OUTPUT_FILE"
 
-# Read template
-TEMPLATE_CONTENT=$(cat "$TEMPLATE_FILE")
+# Read template from embedded content
+TEMPLATE_CONTENT=$(get_template_content)
 
 # Replace <version> placeholders
 YAML_CONTENT="${TEMPLATE_CONTENT//<version>/$CATALOG_VERSION}"

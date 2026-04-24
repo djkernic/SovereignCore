@@ -387,14 +387,14 @@ oc apply -f /tmp/postgres-policies/install-postgres-image-catalog-1.0.0.yaml
 
 ```
 postgres-catalog-setup/
-├── setup-postgres-catalog.sh          # Main script
+├── setup-postgres-catalog.sh          # Main script (self-contained, no external template needed)
 ├── config.example.yaml                # Example configuration
 ├── README.md                          # This file
-├── templates/
-│   └── install-postgres-image-catalog-template.yaml
 └── generated/                         # Generated YAML files (created by script)
     └── install-postgres-image-catalog-<version>.yaml
 ```
+
+**Note**: The script is now self-contained with an embedded YAML template, eliminating the need for external template files.
 
 ## Integration with Landing Zone
 
