@@ -1,0 +1,44 @@
+# General Setup
+application: vm-service-broker
+applicationShortName: vm
+version: 0.1.0
+bySquadLabel: vmaas
+forProductLabel: all
+namespace: vm-service-broker
+productName: 'VM Service Tech Preview'
+port: 7331
+name: vm-service-tech-preview
+
+replicas: 1
+
+# Container image to use
+image: /automation-saas-platform/vm-service-broker:main-1776704570
+
+# mTLS is highly recommended for security
+mtls:
+  enabled: false
+
+# Cluster Configs
+cluster: 
+  id: unknown
+  type: unknown
+  appdomain: account-iam.apps.cluster.domain
+  issuer: sovcloud-issuer
+  issuerKind: ClusterIssuer
+  server: unknown
+
+# Container Registry
+registry: 
+  domain: unknown
+  chartsRepo: unknown
+  chartsBasePath: 'automation-saas-platform-dev/main/'
+  chartsVersion: '0.1.0'
+  imagesRepo: registry-quay-quay-enterprise.apps.cluster.domain/sovcloud
+
+# IAM auth configuration
+authConfig:
+  enabled: true
+  serviceBrokerSecretName: service-broker-secret
+
+sharedClusterUrl: https://console-openshift-console.apps.vm.cluster.domain
+# Made with Bob
