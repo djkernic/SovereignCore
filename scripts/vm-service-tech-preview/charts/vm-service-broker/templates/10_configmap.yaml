@@ -19,5 +19,5 @@ data:
   AUTH_ROLE: "mcsp-csb"
   CSB_SECRET_NAME: "{{ .Values.authConfig.serviceBrokerSecretName }}"
   {{- end }}
-  SHARED_CLUSTER_URL: "{{ .Values.sharedClusterUrl }}"
+  SHARED_CLUSTER_URL: "{{ .Values.sharedCluster.url }}"
   NAMESPACE: "{{ .Values.namespace }}"

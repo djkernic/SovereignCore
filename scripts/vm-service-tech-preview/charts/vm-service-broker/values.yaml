@@ -22,7 +22,7 @@ mtls:
 cluster: 
   id: unknown
   type: unknown
-  appdomain: account-iam.apps.cluster.domain
+  appdomain: account-iam.apps.example.com
   issuer: sovcloud-issuer
   issuerKind: ClusterIssuer
   server: unknown
@@ -33,12 +33,16 @@ registry:
   chartsRepo: unknown
   chartsBasePath: 'automation-saas-platform-dev/main/'
   chartsVersion: '0.1.0'
-  imagesRepo: registry-quay-quay-enterprise.apps.cluster.domain/sovcloud
+  imagesRepo: registry-quay-quay-enterprise.apps.example.com/sovcloud
 
 # IAM auth configuration
 authConfig:
   enabled: true
   serviceBrokerSecretName: service-broker-secret
 
-sharedClusterUrl: https://console-openshift-console.apps.vm.cluster.domain
+sharedCluster:
+  url: https://console-openshift-console.apps.example.com
+  vmImageRepo: registry-quay-quay-enterprise.apps.example.com/sovcloud
+  vmSampleImage: /automation-saas-platform/containerdisks/fedora:43-1.6
+
 # Made with Bob

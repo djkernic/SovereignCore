@@ -49,7 +49,7 @@ spec:
                 spec:
                   channel: "stable"
                   name: kubevirt-hyperconverged
-                  source: redhat-operators
+                  source: mirror-redhat-operators
                   sourceNamespace: openshift-marketplace
                   startingCSV: kubevirt-hyperconverged-operator.v4.20.8
             # Create HyperConverged instance
@@ -89,7 +89,7 @@ spec:
                       source:
                         registry:
                           pullMethod: node
-                          url: 'docker://quay.io/containerdisks/fedora:latest'
+                          url: 'docker://{{ .Values.sharedCluster.vmImageRepo }}{{ .Values.sharedCluster.vmSampleImage }}'
                       storage:
                         resources:
                           requests:

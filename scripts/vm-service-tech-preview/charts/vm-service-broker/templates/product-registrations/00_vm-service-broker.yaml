@@ -76,6 +76,6 @@ spec:
             - name: "VM admin email"
               field: "spec.tenantOwner"
               type: "string"
-              default: "admin@acme-corp.com"
+              default: "admin@example.com"
               editableDuring:
                 - "deployment"
