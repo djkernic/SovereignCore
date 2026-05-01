@@ -51,7 +51,6 @@ spec:
                   name: kubevirt-hyperconverged
                   source: mirror-redhat-operators
                   sourceNamespace: openshift-marketplace
-                  startingCSV: kubevirt-hyperconverged-operator.v4.20.8
             # Create HyperConverged instance
             - complianceType: musthave
               objectDefinition:
@@ -82,7 +81,7 @@ spec:
                 spec:
                   garbageCollect: Outdated
                   managedDataSource: fedora-custom
-                  schedule: 53 10/12 * * *
+                  schedule: "*/5 * * * *"
                   template:
                     metadata: {}
                     spec:

@@ -4,6 +4,10 @@
 
 This document describes procedures for configuring the VM Service Tech Preview for IBM Sovereign Core.
 
+## Limitations
+
+This tech preview assumes you only have one shared VM cluster created.
+
 ## Prerequisites
 
 1. Mirror example Fedora image from `quay.io/containerdisks/fedora:43-1.6` to control plane's registry at `$QUAY_URL/sovcloud/cp/sovereign-cloud-platform/automation-saas-platform-dev/containerdisks/fedora:43-1.6`.  See the Helm chart's values file for the registry URL pattern.
@@ -11,6 +15,10 @@ This document describes procedures for configuring the VM Service Tech Preview f
 2. Sign into the control plane's Account UI as the platform tenant and create a shared cluster with the `vm.sovereign.cloud.ibm.com/virtualization-enabled=true` label.
 
 3. Login to the control plane's OpenShift cluster via the `oc` CLI.
+
+4. Ensure there is a default storage class set for the shared cluster. This will be used for the Fedora sample container disk image as well as be the default for all created Virtual Machines.
+
+5. Verify Virtualization is configured in the shared cluster.
 
 ## Procedure
 
@@ -27,7 +35,5 @@ This document describes procedures for configuring the VM Service Tech Preview f
 4. Login to the shared cluster via `oc` CLI.
 
 5. Run `configure-vm-oauth.sh` to deploy generated client resources and add an identity provider to the shared cluster's OAuth configuration to allow tenant SSO login.
-
-6. Ensure there is a default storage class set for the shared cluster. This will be used for the Fedora sample container disk image as well as be the default for all created Virtual Machines.
 
 7. Login to the control plane's MSP UI and set the VM Service Tech Preview as visible in the catalog to enable tenants to provision the service.

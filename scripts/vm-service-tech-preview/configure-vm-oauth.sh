@@ -55,9 +55,48 @@ oc apply -f "$CONFIGMAP_FILE"
 echo "✓ ConfigMap applied successfully"
 echo ""
 
-# Patch the OAuth resource using JSON patch to append the identity provider
+# Patch the OAuth resource
 echo "Patching OAuth cluster resource..."
-oc patch oauth cluster --type json --patch-file "$OAUTH_PATCH_FILE"
+
+# Check if identityProviders array exists
+if oc get oauth cluster -o jsonpath='{.spec.identityProviders}' 2>/dev/null | grep -q '\['; then
+  # Array exists, append to it
+  echo "Adding identity provider to existing list..."
+  oc patch oauth cluster --type json --patch-file "$OAUTH_PATCH_FILE"
+else
+  # Array doesn't exist, create it with the first provider
+  echo "Creating identityProviders array with new provider..."
+  oc patch oauth cluster --type merge --patch "$(cat <<'EOF'
+{
+  "spec": {
+    "identityProviders": [
+      {
+        "name": "vm-service-sso",
+        "mappingMethod": "claim",
+        "type": "OpenID",
+        "openID": {
+          "clientID": "vm-service-sso",
+          "clientSecret": {
+            "name": "openid-client-secret-vm-service"
+          },
+          "ca": {
+            "name": "openid-ca-vm-service"
+          },
+          "issuer": "https://ivia-apps-wrp.apps.core.sovereign.fyreservices.com/iviaop/oauth2",
+          "claims": {
+            "preferredUsername": ["preferred_username"],
+            "name": ["name"],
+            "email": ["email"]
+          }
+        }
+      }
+    ]
+  }
+}
+EOF
+)"
+fi
+
 echo "✓ OAuth configuration applied successfully"
 echo ""
 
