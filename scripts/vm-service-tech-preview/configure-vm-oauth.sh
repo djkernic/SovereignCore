@@ -66,35 +66,19 @@ if oc get oauth cluster -o jsonpath='{.spec.identityProviders}' 2>/dev/null | gr
 else
   # Array doesn't exist, create it with the first provider
   echo "Creating identityProviders array with new provider..."
-  oc patch oauth cluster --type merge --patch "$(cat <<'EOF'
-{
-  "spec": {
-    "identityProviders": [
-      {
-        "name": "vm-service-sso",
-        "mappingMethod": "claim",
-        "type": "OpenID",
-        "openID": {
-          "clientID": "vm-service-sso",
-          "clientSecret": {
-            "name": "openid-client-secret-vm-service"
-          },
-          "ca": {
-            "name": "openid-ca-vm-service"
-          },
-          "issuer": "https://ivia-apps-wrp.apps.core.sovereign.fyreservices.com/iviaop/oauth2",
-          "claims": {
-            "preferredUsername": ["preferred_username"],
-            "name": ["name"],
-            "email": ["email"]
-          }
-        }
-      }
-    ]
-  }
-}
-EOF
-)"
+  
+  # Extract the identity provider configuration from the JSON patch file
+  # The patch file contains a JSON array with an "add" operation, we need to extract the "value" field
+  IDENTITY_PROVIDER=$(jq -r '.[0].value' "$OAUTH_PATCH_FILE")
+  
+  # Create the merge patch with the extracted identity provider
+  MERGE_PATCH=$(jq -n --argjson provider "$IDENTITY_PROVIDER" '{
+    "spec": {
+      "identityProviders": [$provider]
+    }
+  }')
+  
+  oc patch oauth cluster --type merge --patch "$MERGE_PATCH"
 fi
 
 echo "✓ OAuth configuration applied successfully"

@@ -71,7 +71,15 @@ fi
 # Use provided VM_CLUSTER_ROUTE or generate from managed cluster
 if [ -n "$1" ]; then
   VM_CLUSTER_ROUTE="$1"
-  echo "Using provided VM_CLUSTER_ROUTE: $VM_CLUSTER_ROUTE"
+  
+  # Sanitize console-openshift-console URLs to oauth-openshift format
+  # Example: https://console-openshift-console.apps.cluster.example.com -> https://oauth-openshift.apps.cluster.example.com
+  if [[ "$VM_CLUSTER_ROUTE" == *"console-openshift-console.apps."* ]]; then
+    VM_CLUSTER_ROUTE=$(echo "$VM_CLUSTER_ROUTE" | sed 's|console-openshift-console\.apps\.|oauth-openshift.apps.|')
+    echo "Sanitized console URL to OAuth format: $VM_CLUSTER_ROUTE"
+  else
+    echo "Using provided VM_CLUSTER_ROUTE: $VM_CLUSTER_ROUTE"
+  fi
 else
   echo "Generating VM_CLUSTER_ROUTE from managed cluster..."
   # Transform API URL to OAuth URL format
@@ -83,6 +91,47 @@ else
     exit 1
   fi
   echo "Generated VM_CLUSTER_ROUTE: $VM_CLUSTER_ROUTE"
+fi
+echo ""
+
+echo "Checking if SSO client exists..."
+CHECK_RESPONSE=$(curl -X 'GET' \
+  https://$ACCOUNT_IAM_ROUTE/api/2.0/apps/clients/$CLIENT_ID \
+  -H 'accept: application/json' \
+  -H "Authorization: Bearer $TOKEN" \
+  --insecure \
+  --silent \
+  --write-out "\n%{http_code}")
+
+echo $CHECK_RESPONSE
+
+CHECK_HTTP_CODE=$(echo "$CHECK_RESPONSE" | tail -n1)
+
+if [ "$CHECK_HTTP_CODE" -eq 200 ]; then
+  echo "Existing SSO client found. Deleting..."
+  DELETE_RESPONSE=$(curl -X 'DELETE' \
+    https://$ACCOUNT_IAM_ROUTE/api/2.0/apps/clients/$CLIENT_ID \
+    -H 'accept: application/json' \
+    -H "Authorization: Bearer $TOKEN" \
+    -H 'Content-Type: application/json' \
+    --insecure \
+    --silent \
+    --write-out "\n%{http_code}")
+  
+  DELETE_HTTP_CODE=$(echo "$DELETE_RESPONSE" | tail -n1)
+  if [ "$DELETE_HTTP_CODE" -ge 200 ] 2>/dev/null && [ "$DELETE_HTTP_CODE" -lt 300 ] 2>/dev/null; then
+    echo "✓ Successfully deleted existing SSO client"
+  else
+    echo "✗ Failed to delete existing SSO client (HTTP $DELETE_HTTP_CODE)"
+    echo "$DELETE_RESPONSE" | head -n-1
+    exit 1
+  fi
+elif [ "$CHECK_HTTP_CODE" -eq 400 ]; then
+  echo "No existing SSO client found. Proceeding with creation..."
+else
+  echo "✗ Unexpected response when checking for existing client (HTTP $CHECK_HTTP_CODE)"
+  echo "$CHECK_RESPONSE" | head -n-1
+  exit 1
 fi
 echo ""
 
@@ -117,7 +166,7 @@ EOF
 
 # Extract HTTP status code from last line of response
 HTTP_CODE=$(echo "$SSO_RESPONSE" | tail -n1)
-if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+if [ "$HTTP_CODE" -lt 200 ] 2>/dev/null || [ "$HTTP_CODE" -ge 300 ] 2>/dev/null; then
   echo "Error: Failed to create SSO client (HTTP $HTTP_CODE)"
   echo "$SSO_RESPONSE" | head -n-1  # Show response body without status code
   exit 1

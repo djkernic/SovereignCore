@@ -18,8 +18,6 @@ This tech preview assumes you only have one shared VM cluster created.
 
 4. Ensure there is a default storage class set for the shared cluster. This will be used for the Fedora sample container disk image as well as be the default for all created Virtual Machines.
 
-5. Verify Virtualization is configured in the shared cluster.
-
 ## Procedure
 
 1. Run `configure-chart-overrides.sh https://console-openshift-console.apps.<domain>` with optional argument of shared cluster console URL to generate a values override file called `values-override.yaml` for the `vm-service-broker` Helm chart.
@@ -35,5 +33,7 @@ This tech preview assumes you only have one shared VM cluster created.
 4. Login to the shared cluster via `oc` CLI.
 
 5. Run `configure-vm-oauth.sh` to deploy generated client resources and add an identity provider to the shared cluster's OAuth configuration to allow tenant SSO login.
+
+6. Verify Virtualization is configured in the shared cluster.
 
 7. Login to the control plane's MSP UI and set the VM Service Tech Preview as visible in the catalog to enable tenants to provision the service.
