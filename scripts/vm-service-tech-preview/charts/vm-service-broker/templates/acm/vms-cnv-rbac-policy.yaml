@@ -37,7 +37,7 @@ spec:
                   resources: ["virtualmachines", "virtualmachineinstances", "virtualmachineinstancemigrations"]
                   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
                 - apiGroups: ["subresources.kubevirt.io"]
-                  resources: ["virtualmachineinstances/console", "virtualmachineinstances/vnc", "virtualmachineinstances/vnc/screenshot", "virtualmachineinstances/portforward", "virtualmachines/start", "virtualmachines/stop", "virtualmachineinstances/guestosinfo"]
+                  resources: ["virtualmachineinstances/console", "virtualmachineinstances/vnc", "virtualmachineinstances/vnc/screenshot", "virtualmachineinstances/portforward", "virtualmachines/start", "virtualmachines/stop", "virtualmachines/portforward", "virtualmachineinstances/guestosinfo"]
                   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
                 - apiGroups: ["cdi.kubevirt.io"]
                   resources: ["datavolumes"]
