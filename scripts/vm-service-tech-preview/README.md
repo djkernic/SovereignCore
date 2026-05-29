@@ -10,13 +10,15 @@ This tech preview assumes you only have one shared VM cluster created.
 
 ## Prerequisites
 
-1. Mirror example Fedora image from `quay.io/containerdisks/fedora:latest` to control plane's registry at `$QUAY_URL/sovcloud/cp/sovereign-cloud-platform/automation-saas-platform-dev/containerdisks/fedora:latest`.  See the Helm chart's values file for the registry URL pattern.
+1. Mirror example Fedora image from `quay.io/containerdisks/fedora:latest` to the control plane's registry at `$QUAY_URL/sovcloud/cp/sovereign-cloud-platform/automation-saas-platform-dev/containerdisks/fedora:latest`.  See the Helm chart's values file for the registry URL pattern.
+
+   > **Important:** The Fedora containerdisk image for version 44-1.7 does not include the fix for [CVE-2026-31431](https://github.com/advisories/GHSA-2274-3hgr-wxv6). Monitor the [Fedora KubeVirt curated containerdisk repository](https://quay.io/repository/containerdisks/fedora?tab=tags) for an updated version that contains the fix. Mirror the updated image when it becomes available.
 
 2. Sign into the control plane's Account UI as the platform tenant and create a shared cluster with the `vm.sovereign.cloud.ibm.com/virtualization-enabled=true` label.
 
 3. Login to the control plane's OpenShift cluster via the `oc` CLI.
 
-4. Ensure there is a default storage class set for the shared cluster. This will be used for the Fedora sample container disk image as well as be the default for all created Virtual Machines.
+4. Ensure there is a default storage class set for the shared cluster. This will be used for the Fedora sample containerdisk image as well as be the default for all created Virtual Machines.
 
 ## Procedure
 
