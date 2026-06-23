@@ -97,7 +97,7 @@ Review [MIG support in Red Hat OpenShift Container Platform](https://docs.nvidia
 4. Check whether a foundation model is deployed on the node by running the following command:
 
     ```sh
-    oc get po --context "<ai-inference-cluster-context>" -n llms -o wide
+    oc get pod --context "<ai-inference-cluster-context>" -n llms -o wide
     ```
 
     The pods running in the llms namespace are listed with their node assignments. If a model deployment is running on the target node, delete the model deployment. MIG cannot be configured while model deployments are active on a node.
